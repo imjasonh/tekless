@@ -49,19 +49,6 @@ write_files:
     WantedBy=multi-user.target
 `
 
-// TODO: replace with user's pod.
-var pod = `
-apiVersion: v1
-kind: Pod
-metadata:
-  name: busybox
-spec:
-  containers:
-  - name: busybox
-    image: busybox
-    command: ['sleep', '3600']
-`
-
 // TODO: generate these.
 var caCert = `
 -----BEGIN CERTIFICATE-----
