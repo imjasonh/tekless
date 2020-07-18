@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 	"time"
@@ -15,7 +16,7 @@ import (
 )
 
 var (
-	file = flag.String("f", "", "Name of Pod spec to send to VM")
+	file = flag.String("f", "pod.yaml", "Name of Pod spec to send to VM")
 
 	tok = flag.String("tok", "", "OAuth token") // TODO use ADC
 
@@ -27,6 +28,12 @@ var (
 func main() {
 	flag.Parse()
 	ctx := context.Background()
+
+	podb, err := ioutil.ReadFile(*file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	pod := string(podb)
 
 	svc, err := compute.NewService(ctx, option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: *tok})))
 	if err != nil {
@@ -59,6 +66,9 @@ func main() {
 			Items: []*compute.MetadataItems{{
 				Key:   "user-data",
 				Value: &cloudConfig,
+			}, {
+				Key:   "pod",
+				Value: &pod,
 			}, {
 				Key:   "ca-cert",
 				Value: &caCert,

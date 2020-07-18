@@ -26,19 +26,6 @@ write_files:
     port: 10250
     staticPodPath: /etc/kubernetes/manifests
 
-# TODO: replace with user's specified pod
-- path: /etc/kubernetes/manifests/busybox.yaml
-  content: |
-    apiVersion: v1
-    kind: Pod
-    metadata:
-      name: busybox
-    spec:
-      containers:
-      - name: busybox
-        image: busybox
-        command: ['sleep', '3600']
-
 - path: /etc/cni/net.d/dummy.conf
   content: |
     {"type":"bridge"}
@@ -50,6 +37,7 @@ write_files:
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert > /etc/certs/cacert.pem"
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert-key > /etc/certs/key.pem"
     ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests
+    ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/pod > /etc/kubernetes/manifests/pod.yaml"
     ExecStart=/usr/bin/kubelet \
       --config=/etc/kubernetes/kubelet-config.yaml \
       --container-runtime=remote \
@@ -59,6 +47,19 @@ write_files:
     
     [Install]
     WantedBy=multi-user.target
+`
+
+// TODO: replace with user's pod.
+var pod = `
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    command: ['sleep', '3600']
 `
 
 // TODO: generate these.
