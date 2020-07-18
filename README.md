@@ -1,12 +1,15 @@
-# Goal
+# Tekton without Kubernetes
 
-Provide a Tekton implementation that doesn't require a Kubernetes cluster
-running full-time. This has cost advantages, and security attack surface area
-advantages. It's arguably not "Serverless", since there's still a management
-cost to upgrading the API server running on Cloud Run. But it would provide a
-billing model where costs are only incurred while work is being performed.
+## Goal
 
-# Design
+Provide an alternative Tekton implementation that doesn't require a Kubernetes
+cluster running full-time. This has cost advantages, and security attack
+surface area advantages. It's arguably not "Serverless", since there's still a
+management cost to upgrading the API server running on Cloud Run. But it would
+provide a billing model where costs are only incurred while work is being
+performed.
+
+## Design
 
 [Tekton](https://tekton.dev) exposes K8s-native APIs for running
 run-to-completion workloads. Its OSS reference implementation runs on K8s, but
