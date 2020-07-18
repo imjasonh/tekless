@@ -70,6 +70,7 @@ func main() {
 				Value: &trueString,
 			}},
 		},
+		Tags: &compute.Tags{Items: []string{"https-server"}},
 		// TODO: enable secure boot
 	}).Do()
 	if err != nil {

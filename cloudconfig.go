@@ -13,6 +13,7 @@ write_files:
 - path: /etc/kubernetes/kubelet-config.yaml
   content: |
     apiVersion: kubelet.config.k8s.io/v1beta1
+    kind: KubeletConfiguration
     authentication:
       webhook:
         enabled: false
@@ -22,21 +23,21 @@ write_files:
       mode: AlwaysAllow
     healthzPort: 10248
     imageGCHighThresholdPercent: 100
-    kind: KubeletConfiguration
     port: 10250
     staticPodPath: /etc/kubernetes/manifests
 
 # TODO: replace with user's specified pod
-- path: /etc/kubernetes/manifests/nginx.yaml
+- path: /etc/kubernetes/manifests/busybox.yaml
   content: |
     apiVersion: v1
     kind: Pod
     metadata:
-      name: nginx
+      name: busybox
     spec:
       containers:
-      - name: nginx
-        image: nginx
+      - name: busybox
+        image: busybox
+        command: ['sleep', '3600']
 
 - path: /etc/cni/net.d/dummy.conf
   content: |
