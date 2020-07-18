@@ -1,4 +1,4 @@
-package main
+package pkg
 
 var trueString = "true"
 

@@ -1,7 +1,7 @@
 ## Running a Pod directly
 
 ```
-go run ./ \
+go run ./cmd/run/ \
   --project=$(gcloud config get-value project) \
   --tok=$(gcloud auth print-access-token) \
   -f=pod.yaml
