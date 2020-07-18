@@ -1,5 +1,7 @@
 # Tekton without Kubernetes
 
+🤖😻🙅☸️
+
 ## Goal
 
 Provide an alternative Tekton implementation that doesn't require a Kubernetes
