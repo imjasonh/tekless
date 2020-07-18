@@ -15,6 +15,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+// RunPod runs the Pod on a new VM.
 func RunPod(ctx context.Context, pod corev1.Pod,
 	tok, project, zone, machineType string) error {
 

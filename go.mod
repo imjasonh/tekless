@@ -10,6 +10,8 @@ require (
 	google.golang.org/api v0.29.0
 	gopkg.in/yaml.v2 v2.3.0
 	k8s.io/api v0.18.6
+	k8s.io/apimachinery v0.17.6
+	k8s.io/client-go v11.0.1-0.20190805182717-6502b5e7b1b5+incompatible
 )
 
 // Knative deps (release-0.15)
