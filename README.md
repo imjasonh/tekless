@@ -64,3 +64,20 @@ The API server and COS VM config could be opensource with versioned releases,
 and instructions for users to upgrade their own API servers. This isn't exactly
 a "serverless" experience, but it does present much simpler administration than
 a full K8s cluster.
+
+### Full Serverless
+
+What if we didn't start a VM at all? Cloud Run is capable of running containers
+near-instantaneously, once they're deployed.
+
+If a Task only specifies a single step, has a short timeout
+([15m](https://cloud.google.com/run/quotas)), doesn't specify any sidecars, and
+runs one of a number of pre-configured images that have already been
+prepared and deployed as Cloud Run Services, the API server could forward the
+TaskRun request to that service for execution.
+
+The service could operate as a simple HTTP server appended on top of the
+underlying image's layers (along with Tekton's entrypoint binary in a separate
+layer), and execute the request in the context of the HTTP request. See
+[`api.kontain.me`](https://github.com/ImJasonH/kontain.me/tree/master/cmd/api)
+as an example of this serving the GCB API.
