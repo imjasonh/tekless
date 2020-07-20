@@ -40,8 +40,7 @@ write_files:
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/pod > /etc/kubernetes/manifests/pod.yaml"
     ExecStart=/usr/bin/kubelet \
       --config=/etc/kubernetes/kubelet-config.yaml \
-      --container-runtime=remote \
-      --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock
+      --container-runtime=docker 
     Restart=always
     RestartSec=10s
     

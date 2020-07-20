@@ -7,9 +7,17 @@ go run ./cmd/run/ \
   -f=pod.yaml
 ```
 
-## Debugging
+### Debugging
 
 SSH into the VM via Cloud Console.
+
+See what containers are running:
+```
+docker ps
+```
+
+If containers aren't running, check the startup script status, and logs and
+status of the `kubelet` that's supposed to be running your Pod:
 
 ```
 sudo journalctl -u cloud-init.service
@@ -17,12 +25,8 @@ sudo journalctl -u kubelet.service
 systemctl status kubelet.service
 ```
 
-kubelet currently fails to start pod with:
-
-```
-failed to find plugin "loopback" in path [/opt/cni/bin]
-```
-
+VMs aren't killed when containers finish yet, so make sure to delete any VMs
+yourself.
 
 ## Deploying the API Service
 
