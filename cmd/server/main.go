@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/imjasonh/tekless/pkg"
+	"github.com/imjasonh/tekless/pkg/storage"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"github.com/tektoncd/pipeline/pkg/pod"
@@ -23,6 +26,16 @@ var (
 
 func main() {
 	flag.Parse()
+	ctx := context.Background()
+
+	dsClient, err := storage.NewTaskRunStorage(ctx, *project)
+	if err != nil {
+		log.Fatalf("storage.NewTaskRunStorage: %v", err)
+	}
+
+	srv := &server{
+		storage: dsClient,
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -30,7 +43,7 @@ func main() {
 	}
 	log.Println("serving TaskRun API on port", port)
 	// TODO: support namespaces as projects
-	http.HandleFunc("/apis/tekton.dev/v1beta1/default/taskruns", handle)
+	http.Handle("/apis/tekton.dev/v1beta1/default/taskruns", srv)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
@@ -42,7 +55,15 @@ var images = pipeline.Images{
 	ShellImage:      "gcr.io/distroless/base@sha256:f79e093f9ba639c957ee857b1ad57ae5046c328998bf8f72b30081db4d8edbe4",
 }
 
-func handle(w http.ResponseWriter, r *http.Request) {
+type server struct {
+	storage *storage.TaskRunStorage
+}
+
+func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if !strings.HasPrefix(r.URL.Path, "/apis/tekton.dev/v1beta1/default/taskruns") {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
 	if r.Method != http.MethodPost {
 		http.Error(w, "must be POST", http.StatusMethodNotAllowed)
 		return

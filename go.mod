@@ -3,6 +3,7 @@ module github.com/imjasonh/tekless
 go 1.14
 
 require (
+	cloud.google.com/go/datastore v1.1.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/uuid v1.1.1
 	github.com/tektoncd/pipeline v0.14.2
