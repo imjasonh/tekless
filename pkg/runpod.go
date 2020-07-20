@@ -17,9 +17,9 @@ import (
 
 // RunPod runs the Pod on a new VM.
 func RunPod(ctx context.Context, pod corev1.Pod,
-	tok, project, zone, machineType string) error {
+	ts oauth2.TokenSource, project, zone, machineType string) error {
 
-	svc, err := compute.NewService(ctx, option.WithTokenSource(oauth2.StaticTokenSource(&oauth2.Token{AccessToken: tok})))
+	svc, err := compute.NewService(ctx, option.WithTokenSource(ts))
 	if err != nil {
 		return err
 	}

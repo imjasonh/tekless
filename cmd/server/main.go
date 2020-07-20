@@ -9,11 +9,14 @@ import (
 	"os"
 	"strings"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/imjasonh/tekless/pkg"
 	"github.com/imjasonh/tekless/pkg/storage"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	"github.com/tektoncd/pipeline/pkg/pod"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -28,12 +31,28 @@ func main() {
 	flag.Parse()
 	ctx := context.Background()
 
+	if *project == "" {
+		p, err := metadata.ProjectID()
+		if err != nil {
+			log.Fatal("couldn't determine project ID from metadata")
+		}
+		*project = p
+	}
+
+	var ts oauth2.TokenSource
+	if *tok != "" {
+		ts = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: *tok})
+	} else {
+		ts = google.ComputeTokenSource("", "https://www.googleapis.com/auth/cloud-platform")
+	}
+
 	dsClient, err := storage.NewTaskRunStorage(ctx, *project)
 	if err != nil {
 		log.Fatalf("storage.NewTaskRunStorage: %v", err)
 	}
 
 	srv := &server{
+		ts:      ts,
 		storage: dsClient,
 	}
 
@@ -56,6 +75,7 @@ var images = pipeline.Images{
 }
 
 type server struct {
+	ts      oauth2.TokenSource
 	storage *storage.TaskRunStorage
 }
 
@@ -94,7 +114,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := pkg.RunPod(ctx, *p, *tok, *project, *zone, *machineType); err != nil {
+	if err := pkg.RunPod(ctx, *p, s.ts, *project, *zone, *machineType); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

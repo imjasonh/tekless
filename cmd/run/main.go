@@ -8,6 +8,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/imjasonh/tekless/pkg"
+	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -24,6 +25,7 @@ var (
 func main() {
 	flag.Parse()
 	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: *tok})
 
 	log.Println("running pod spec:", *file)
 
@@ -37,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := pkg.RunPod(ctx, pod, *tok, *project, *zone, *machineType); err != nil {
+	if err := pkg.RunPod(ctx, pod, ts, *project, *zone, *machineType); err != nil {
 		log.Fatal(err)
 	}
 }
