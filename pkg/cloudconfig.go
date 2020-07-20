@@ -37,6 +37,7 @@ write_files:
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert > /etc/certs/cacert.pem"
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert-key > /etc/certs/key.pem"
     ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests
+    ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/watcher > /etc/kubernetes/manifests/watcher.yaml"
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/pod > /etc/kubernetes/manifests/pod.yaml"
     ExecStart=/usr/bin/kubelet \
       --config=/etc/kubernetes/kubelet-config.yaml \
@@ -46,6 +47,18 @@ write_files:
     
     [Install]
     WantedBy=multi-user.target
+`
+
+var watcherPodFmt = `
+apiVersion: v1
+kind: Pod
+metadata:
+  name: watcher
+  namespace: system
+spec:
+  containers:
+  - name: watcher
+    image: %q
 `
 
 // TODO: generate these.

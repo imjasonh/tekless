@@ -1,9 +1,15 @@
+## Prerequisites
+
+Install [`ko`](https://github.com/google/ko) and set
+`KO_DOCKER_REPO=gcr.io/$(gcloud config get-value project)`.
+
 ## Running a Pod directly
 
 ```
 go run ./cmd/run/ \
   --project=$(gcloud config get-value project) \
   --tok=$(gcloud auth print-access-token) \
+  --watcher_image=$(ko publish ./cmd/watcher) \
   -f=pod.yaml
 ```
 
@@ -29,9 +35,6 @@ VMs aren't killed when containers finish yet, so make sure to delete any VMs
 yourself.
 
 ## Deploying the API Service
-
-Install [`ko`](https://github.com/google/ko) and set
-`KO_DOCKER_REPO=gcr.io/$(gcloud config get-value project)`.
 
 ```
 ko resolve -f config/service.yaml | \

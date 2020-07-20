@@ -7,3 +7,6 @@ spec:
   spec:
    containers:
    - image: ko://github.com/imjasonh/tekless/cmd/server
+     args:
+     - --watcher_image
+     - ko://github.com/imjasonh/tekless/cmd/watcher

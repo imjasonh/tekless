@@ -17,7 +17,7 @@ import (
 
 // RunPod runs the Pod on a new VM.
 func RunPod(ctx context.Context, pod corev1.Pod,
-	ts oauth2.TokenSource, project, zone, machineType string) error {
+	ts oauth2.TokenSource, watcherImage, project, zone, machineType string) error {
 
 	svc, err := compute.NewService(ctx, option.WithTokenSource(ts))
 	if err != nil {
@@ -31,6 +31,8 @@ func RunPod(ctx context.Context, pod corev1.Pod,
 	podstr := string(b)
 
 	region := zone[:strings.LastIndex(zone, "-")]
+
+	watcherPod := fmt.Sprintf(watcherPodFmt, watcherImage)
 
 	name := "instance-" + uuid.New().String()[:4]
 	log.Printf("creating %q...", name)
@@ -56,6 +58,9 @@ func RunPod(ctx context.Context, pod corev1.Pod,
 			Items: []*compute.MetadataItems{{
 				Key:   "user-data",
 				Value: &cloudConfig,
+			}, {
+				Key:   "watcher",
+				Value: &watcherPod,
 			}, {
 				Key:   "pod",
 				Value: &podstr,

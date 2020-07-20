@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	file = flag.String("f", "", "Name of Pod spec to send to VM")
+	watcherImage = flag.String("watcher_image", "", "Image of watcher container")
+	file         = flag.String("f", "", "Name of Pod spec to send to VM")
 
 	tok = flag.String("tok", "", "OAuth token") // TODO use ADC
 
@@ -39,7 +40,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := pkg.RunPod(ctx, pod, ts, *project, *zone, *machineType); err != nil {
+	if err := pkg.RunPod(ctx, pod, ts, *watcherImage, *project, *zone, *machineType); err != nil {
 		log.Fatal(err)
 	}
 }

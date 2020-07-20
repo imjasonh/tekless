@@ -20,6 +20,8 @@ import (
 )
 
 var (
+	watcherImage = flag.String("watcher_image", "", "Image of watcher container")
+
 	tok = flag.String("tok", "", "OAuth token") // TODO use ADC
 
 	project     = flag.String("project", "", "Project to own the VM")
@@ -114,7 +116,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := pkg.RunPod(ctx, *p, s.ts, *project, *zone, *machineType); err != nil {
+	if err := pkg.RunPod(ctx, *p, s.ts, *watcherImage, *project, *zone, *machineType); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
