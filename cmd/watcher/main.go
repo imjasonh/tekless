@@ -9,11 +9,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
 )
 
 var (
-	kubeletAddr = flag.String("kubelet_addr", "localhost:10250", "Address of local kubelet")
+	kubeletAddr = flag.String("kubelet_addr", "https://localhost:10250", "Address of local kubelet")
 )
 
 func main() {
@@ -27,29 +28,29 @@ func main() {
 		},
 	}
 
+	prev := corev1.PodStatus{}
 	for ; ; time.Sleep(time.Second) {
-		ping(client)
-	}
-}
-
-func ping(client *http.Client) {
-	podsURL := fmt.Sprintf("%s/pods", *kubeletAddr)
-	resp, err := client.Get(podsURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer resp.Body.Close()
-	var pl corev1.PodList
-	if err := json.NewDecoder(resp.Body).Decode(&pl); err != nil {
-		log.Fatal(err)
-	}
-
-	for _, p := range pl.Items {
-		if p.Namespace == "system" && p.Name == "watcher" {
-			continue
+		podsURL := fmt.Sprintf("%s/pods", *kubeletAddr)
+		resp, err := client.Get(podsURL)
+		if err != nil {
+			log.Fatal(err)
 		}
-		b, _ := json.MarshalIndent(p, "", "  ")
-		log.Println(string(b))
+
+		var pl corev1.PodList
+		if err := json.NewDecoder(resp.Body).Decode(&pl); err != nil {
+			log.Fatal(err)
+		}
+		resp.Body.Close()
+
+		for _, p := range pl.Items {
+			if p.Namespace == "system" && p.Name == "watcher" {
+				continue
+			}
+
+			if d := cmp.Diff(p.Status, prev); d != "" {
+				log.Println("Pod update (-was,+now):", d)
+				prev = p.Status
+			}
+		}
 	}
 }

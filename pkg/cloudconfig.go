@@ -5,6 +5,8 @@ var trueString = "true"
 var cloudConfig = `#cloud-config
 
 runcmd:
+# Authorize Docker to pull private images.
+- docker-credential-gcr configure-docker
 - systemctl daemon-reload
 - systemctl enable kubelet.service
 - systemctl start kubelet.service
@@ -31,14 +33,16 @@ write_files:
     {"type":"bridge"}
 
 - path: /etc/systemd/system/kubelet.service
+  permissions: 0644
+  owner: root
   content: |
     [Service]
+    # TODO: support pulling private watcher image here (currently public)
     ExecStartPre=/bin/mkdir -p /etc/certs
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert > /etc/certs/cacert.pem"
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert-key > /etc/certs/key.pem"
     ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests
-    # TODO: re-enable watcher pod
-    #ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/watcher > /etc/kubernetes/manifests/watcher.yaml"
+    ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/watcher > /etc/kubernetes/manifests/watcher.yaml"
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/pod > /etc/kubernetes/manifests/pod.yaml"
     ExecStart=/usr/bin/kubelet \
       --config=/etc/kubernetes/kubelet-config.yaml \
@@ -57,6 +61,7 @@ metadata:
   name: watcher
   namespace: system
 spec:
+  hostNetwork: true
   containers:
   - name: watcher
     image: %q

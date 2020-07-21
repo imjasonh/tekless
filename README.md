@@ -13,6 +13,8 @@ performed.
 
 ## Design
 
+![Diagram of Tekless](diagram.png)
+
 [Tekton](https://tekton.dev) exposes K8s-native APIs for running
 run-to-completion workloads. Its OSS reference implementation runs on K8s, but
 that's not a hard requirement.

@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go v0.56.0
 	cloud.google.com/go/datastore v1.1.0
 	github.com/ghodss/yaml v1.0.0
+	github.com/google/go-cmp v0.4.1
 	github.com/google/uuid v1.1.1
 	github.com/tektoncd/pipeline v0.14.2
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d

@@ -56,7 +56,7 @@ curl -v  --insecure https://localhost:10250/pods
 And for logs:
 
 ```
-curl -v --insecure https://localhost:10250/
+curl -v --insecure https://localhost:10250/logs/
 curl -v --insecure https://localhost:10250/logs/containers/[CONTAINER-NAME]
 curl -v --insecure https://localhost:10250/logs/pods/[POD-NAME]/[CONTAINER-NAME]/0.log
 ```
