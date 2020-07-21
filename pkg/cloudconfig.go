@@ -37,7 +37,8 @@ write_files:
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert > /etc/certs/cacert.pem"
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert-key > /etc/certs/key.pem"
     ExecStartPre=/bin/mkdir -p /etc/kubernetes/manifests
-    ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/watcher > /etc/kubernetes/manifests/watcher.yaml"
+    # TODO: re-enable watcher pod
+    #ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/watcher > /etc/kubernetes/manifests/watcher.yaml"
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/pod > /etc/kubernetes/manifests/pod.yaml"
     ExecStart=/usr/bin/kubelet \
       --config=/etc/kubernetes/kubelet-config.yaml \

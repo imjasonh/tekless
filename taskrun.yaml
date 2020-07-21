@@ -1,0 +1,13 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: taskrun
+  # TODO: MakePod currently assumes this is populated...
+  annotations: {}
+spec:
+  taskSpec:
+    steps:
+    # Specify command + args so entrypoint lookup doesn't have to cache.
+    - image: busybox
+      command: ['sh']
+      args: ['sleep', '3600']

@@ -2,18 +2,77 @@ package pkg
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
+	"github.com/ghodss/yaml"
 	"github.com/google/uuid"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline"
+	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
+	"github.com/tektoncd/pipeline/pkg/pod"
 	"golang.org/x/oauth2"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/option"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
 )
+
+// Support images from v0.14.2
+var images = pipeline.Images{
+	EntrypointImage: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/entrypoint:v0.14.2@sha256:3db5b1622b939b11603b49916cdfb5718e25add7a9c286a2832afb16f57f552f",
+	CredsImage:      "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/creds-init:v0.14.2@sha256:64a511c0e68f611f630ccbe3744c97432f69c300940f4a32e748457581394dd6",
+	NopImage:        "tianon/true@sha256:009cce421096698832595ce039aa13fa44327d96beedb84282a69d3dbcf5a81b",
+	ShellImage:      "gcr.io/distroless/base@sha256:f79e093f9ba639c957ee857b1ad57ae5046c328998bf8f72b30081db4d8edbe4",
+}
+
+func RunTaskRun(ctx context.Context, tr v1beta1.TaskRun,
+	ts oauth2.TokenSource, watcherImage, project, zone, machineType string) error {
+
+	// Validate TaskRun request (must inline taskSpec)
+	// TODO: support referencing Tasks
+	if err := tr.Validate(ctx); err != nil {
+		return err
+	}
+	if tr.Spec.TaskSpec == nil {
+		return errors.New("must inline taskSpec")
+	}
+
+	saName := tr.Spec.ServiceAccountName
+	if saName == "" {
+		saName = "default"
+	}
+	kubeclient := fake.NewSimpleClientset(
+		// Pretend there's a ServiceAccount with no Secrets to add.
+		&corev1.ServiceAccount{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: saName,
+			},
+		},
+	)
+	var entrypointCache pod.EntrypointCache // nil, unused
+	overrideHomeEnv := false
+
+	p, err := pod.MakePod(ctx, images, &tr, *tr.Spec.TaskSpec, kubeclient, entrypointCache, overrideHomeEnv)
+	if err != nil {
+		return err
+	}
+
+	// TODO: do this in pod.go
+	p.TypeMeta = metav1.TypeMeta{
+		APIVersion: "v1",
+		Kind:       "Pod",
+	}
+	// TODO: provide downward API value since there aren't sidecars to wait for.
+	p.ObjectMeta.Annotations["tekton.dev/ready"] = "READY"
+	// TODO: the TaskRun owner has uid:"" which kubelet doesn't like...
+	p.ObjectMeta.OwnerReferences = nil
+
+	return RunPod(ctx, *p, ts, watcherImage, project, zone, machineType)
+}
 
 // RunPod runs the Pod on a new VM.
 func RunPod(ctx context.Context, pod corev1.Pod,
@@ -24,11 +83,12 @@ func RunPod(ctx context.Context, pod corev1.Pod,
 		return err
 	}
 
-	b, err := json.Marshal(pod)
+	b, err := yaml.Marshal(pod)
 	if err != nil {
 		return err
 	}
 	podstr := string(b)
+	log.Println("POD MANIFEST:\n", podstr) // TODO remove
 
 	region := zone[:strings.LastIndex(zone, "-")]
 

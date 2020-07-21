@@ -12,9 +12,7 @@ import (
 	"cloud.google.com/go/compute/metadata"
 	"github.com/imjasonh/tekless/pkg"
 	"github.com/imjasonh/tekless/pkg/storage"
-	"github.com/tektoncd/pipeline/pkg/apis/pipeline"
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
-	"github.com/tektoncd/pipeline/pkg/pod"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -68,14 +66,6 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-// Support images from v0.14.2
-var images = pipeline.Images{
-	EntrypointImage: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/entrypoint:v0.14.2@sha256:3db5b1622b939b11603b49916cdfb5718e25add7a9c286a2832afb16f57f552f",
-	CredsImage:      "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/creds-init:v0.14.2@sha256:64a511c0e68f611f630ccbe3744c97432f69c300940f4a32e748457581394dd6",
-	NopImage:        "tianon/true@sha256:009cce421096698832595ce039aa13fa44327d96beedb84282a69d3dbcf5a81b",
-	ShellImage:      "gcr.io/distroless/base@sha256:f79e093f9ba639c957ee857b1ad57ae5046c328998bf8f72b30081db4d8edbe4",
-}
-
 type server struct {
 	ts      oauth2.TokenSource
 	storage *storage.TaskRunStorage
@@ -93,30 +83,13 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	defer r.Body.Close()
-	var tr *v1beta1.TaskRun
-	if err := json.NewDecoder(r.Body).Decode(tr); err != nil {
+	var tr v1beta1.TaskRun
+	if err := json.NewDecoder(r.Body).Decode(&tr); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Validate TaskRun request (must inline taskSpec)
-	// TODO: support referencing Tasks
-	if err := tr.Validate(ctx); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	if tr.Spec.TaskSpec == nil {
-		http.Error(w, "must inline taskSpec", http.StatusBadRequest)
-		return
-	}
-
-	p, err := pod.MakePod(ctx, images, tr, *tr.Spec.TaskSpec, nil, nil, true)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err := pkg.RunPod(ctx, *p, s.ts, *watcherImage, *project, *zone, *machineType); err != nil {
+	if err := pkg.RunTaskRun(ctx, tr, s.ts, *watcherImage, *project, *zone, *machineType); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
