@@ -70,6 +70,7 @@ write_files:
         volumeMounts:
         - name: etc-google-fluentd
           mountPath: /etc/google-fluentd
+          readOnly: true
         - name: usr-lib64
           mountPath: /host/lib64
           readOnly: true
@@ -108,7 +109,6 @@ write_files:
       matches [{ "_SYSTEMD_UNIT": "docker.service" }]
       read_from_head true
 
-      @label @argologs
       tag docker
 
       <storage>
@@ -129,6 +129,17 @@ write_files:
         path /var/log/google-fluentd/kubelet-journald-cursor.json
       </storage>
     </source>
+
+    <filter **>
+      @type systemd_entry
+      fields_lowercase true
+      fields_strip_underscores true
+    </filter>
+
+    <match **>
+      @type file
+      path /var/log/google-fluentd/default
+    </match>
 `
 
 var watcherPodFmt = `

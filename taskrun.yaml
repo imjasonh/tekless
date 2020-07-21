@@ -7,7 +7,6 @@ metadata:
 spec:
   taskSpec:
     steps:
-    # Specify command + args so entrypoint lookup doesn't have to cache.
     - image: busybox
-      command: ['sh']
-      args: ['sleep', '3600']
+      # Must specify script or command to avoid entrypoint lookup
+      script: sleep 3600

@@ -24,8 +24,6 @@ import (
 // Support images from v0.14.2
 var images = pipeline.Images{
 	EntrypointImage: "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/entrypoint:v0.14.2@sha256:3db5b1622b939b11603b49916cdfb5718e25add7a9c286a2832afb16f57f552f",
-	CredsImage:      "gcr.io/tekton-releases/github.com/tektoncd/pipeline/cmd/creds-init:v0.14.2@sha256:64a511c0e68f611f630ccbe3744c97432f69c300940f4a32e748457581394dd6",
-	NopImage:        "tianon/true@sha256:009cce421096698832595ce039aa13fa44327d96beedb84282a69d3dbcf5a81b",
 	ShellImage:      "gcr.io/distroless/base@sha256:f79e093f9ba639c957ee857b1ad57ae5046c328998bf8f72b30081db4d8edbe4",
 }
 
@@ -147,7 +145,9 @@ func RunPod(ctx context.Context, pod corev1.Pod,
 			}},
 		},
 		Tags: &compute.Tags{Items: []string{"https-server"}},
-		// TODO: enable secure boot
+		ShieldedInstanceConfig: &compute.ShieldedInstanceConfig{
+			EnableSecureBoot: true,
+		},
 	}).Do()
 	if err != nil {
 		return err
