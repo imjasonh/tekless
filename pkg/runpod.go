@@ -114,6 +114,17 @@ func RunPod(ctx context.Context, pod corev1.Pod,
 				NetworkTier: "PREMIUM",
 			}},
 		}},
+		ServiceAccounts: []*compute.ServiceAccount{{
+			Email: "178371766757-compute@developer.gserviceaccount.com",
+			Scopes: []string{
+				// Permiission to pull private images (watcher)
+				"https://www.googleapis.com/auth/devstorage.read_only",
+
+				// Permission to write logs and metrics (google-fluentd)
+				"https://www.googleapis.com/auth/logging.write",
+				"https://www.googleapis.com/auth/monitoring.write",
+			},
+		}},
 		Metadata: &compute.Metadata{
 			Items: []*compute.MetadataItems{{
 				Key:   "user-data",

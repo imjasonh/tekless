@@ -6,4 +6,9 @@ spec:
   containers:
   - name: busybox
     image: busybox
-    command: ['sleep', '3600']
+    command: ['sh']
+    args:
+    - -c
+    - |
+      wget -O- --header "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true"
+

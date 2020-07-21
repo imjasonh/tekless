@@ -43,7 +43,7 @@ func main() {
 		resp.Body.Close()
 
 		for _, p := range pl.Items {
-			if p.Namespace == "system" && p.Name == "watcher" {
+			if p.Namespace == "system" {
 				continue
 			}
 

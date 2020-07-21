@@ -37,7 +37,9 @@ write_files:
   owner: root
   content: |
     [Service]
-    # TODO: support pulling private watcher image here (currently public)
+    Environment="HOME=/home/cloudservice"
+    ExecStartPre=/usr/bin/docker-credential-gcr configure-docker
+
     ExecStartPre=/bin/mkdir -p /etc/certs
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert > /etc/certs/cacert.pem"
     ExecStartPre=/bin/bash -c "/usr/share/google/get_metadata_value attributes/ca-cert-key > /etc/certs/key.pem"
@@ -52,6 +54,81 @@ write_files:
     
     [Install]
     WantedBy=multi-user.target
+
+- path: /etc/kubernetes/manifests/google-fluentd.yaml
+  content: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: google-fluentd
+      namespace: system
+    spec:
+      containers:
+      - name: google-fluentd
+        image: gcr.io/stackdriver-agents/stackdriver-logging-agent:1.6.14
+        hostNetwork: true
+        volumeMounts:
+        - name: etc-google-fluentd
+          mountPath: /etc/google-fluentd
+        - name: usr-lib64
+          mountPath: /host/lib64
+          readOnly: true
+        - name: var-log
+          mountPath: /var/log
+      volumes:
+      - name: etc-google-fluentd
+        hostPath:
+          path: /etc/google-fluentd
+          type: DirectoryOrCreate
+      - name: usr-lib64
+        hostPath:
+          path: /usr/lib64
+          type: Directory
+      - name: var-log
+        hostPath:
+          path: /var/log
+          type: Directory
+
+- path: /etc/google-fluentd/google-fluentd.conf
+  content: |
+    <source>
+      @type systemd
+      matches [{ "SYSLOG_IDENTIFIER": "audit" }]
+      read_from_head true
+      tag audit
+
+      <storage>
+        @type local
+        path /var/log/google-fluentd/audit-journald-cursor.json
+      </storage>
+    </source>
+
+    <source>
+      @type systemd
+      matches [{ "_SYSTEMD_UNIT": "docker.service" }]
+      read_from_head true
+
+      @label @argologs
+      tag docker
+
+      <storage>
+        @type local
+        path /var/log/google-fluentd/docker-journald-cursor.json
+      </storage>
+    </source>
+
+    <source>
+      @type systemd
+      matches [{ "_SYSTEMD_UNIT": "kubelet.service" }]
+      read_from_head true
+
+      tag kubelet
+
+      <storage>
+        @type local
+        path /var/log/google-fluentd/kubelet-journald-cursor.json
+      </storage>
+    </source>
 `
 
 var watcherPodFmt = `
