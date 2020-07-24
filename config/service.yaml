@@ -5,8 +5,11 @@ metadata:
 spec:
  template:
   spec:
-   containers:
-   - image: ko://github.com/imjasonh/tekless/cmd/server
-     args:
-     - --watcher_image
-     - ko://github.com/imjasonh/tekless/cmd/watcher
+    containers:
+    - image: ko://github.com/imjasonh/tekless/cmd/server
+      args:
+      - --watcher_image
+      - ko://github.com/imjasonh/tekless/cmd/watcher
+      - --host
+      - https://api-zrxvguzx2q-uk.a.run.app
+    timeoutSeconds: 20

@@ -54,6 +54,11 @@ func RunTaskRun(ctx context.Context, tr v1beta1.TaskRun,
 	var entrypointCache pod.EntrypointCache // nil, unused
 	overrideHomeEnv := false
 
+	// MakePod assumes TaskRun already has annotations...
+	if tr.Annotations == nil {
+		tr.Annotations = map[string]string{}
+	}
+	// TODO: MakePod modifies TaskRun when using script mode.
 	p, err := pod.MakePod(ctx, images, &tr, *tr.Spec.TaskSpec, kubeclient, entrypointCache, overrideHomeEnv)
 	if err != nil {
 		return err

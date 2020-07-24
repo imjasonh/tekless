@@ -12,7 +12,7 @@ Install [`ko`](https://github.com/google/ko) and set
 go run ./cmd/run/ \
   --project=$(gcloud config get-value project) \
   --tok=$(gcloud auth print-access-token) \
-  --watcher_image=$(ko publish ./cmd/watcher) \
+  --watcher_image=$(ko publish -P ./cmd/watcher) \
   --pod=pod.yaml
 ```
 
@@ -22,7 +22,7 @@ go run ./cmd/run/ \
 go run ./cmd/run/ \
   --project=$(gcloud config get-value project) \
   --tok=$(gcloud auth print-access-token) \
-  --watcher_image=$(ko publish ./cmd/watcher) \
+  --watcher_image=$(ko publish -P ./cmd/watcher) \
   --taskrun=taskrun.yaml
 ```
 
@@ -75,7 +75,7 @@ permissions issue with the entrypoint binary running the step:
 ## Deploying the API Service
 
 ```
-ko resolve -f config/service.yaml | \
+ko resolve -P -f config/service.yaml | \
     sed -e 's/---//g' | \
     gcloud beta run services replace - --platform=managed --region=us-east4
 ```
@@ -85,4 +85,10 @@ You can also set gcloud defaults:
 ```
 gcloud config set run/region us-east4
 gcloud config set run/platform managed
+```
+
+### Running a TaskRun
+
+```
+curl -X POST -H "Content-Type: application/json" -d @taskrun.json https://api-zrxvguzx2q-uk.a.run.app/apis/tekton.dev/v1beta1/default/taskruns
 ```

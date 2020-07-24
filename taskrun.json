@@ -1,0 +1,15 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "TaskRun",
+  "metadata": {
+    "generateName": "run-"
+  },
+  "spec": {
+    "taskSpec": {
+      "steps": [{
+        "image": "busybox",
+	"script": "echo hello"
+      }]
+    }
+  }
+}

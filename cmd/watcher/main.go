@@ -15,6 +15,8 @@ import (
 
 var (
 	kubeletAddr = flag.String("kubelet_addr", "https://localhost:10250", "Address of local kubelet")
+
+	apiHost = flag.String("api_host", "", "Cloudu Run HTTPS host to send updates")
 )
 
 func main() {
