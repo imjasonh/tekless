@@ -8,7 +8,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/google/go-cmp v0.4.1
 	github.com/google/uuid v1.1.1
-	github.com/tektoncd/pipeline v0.14.2
+	github.com/tektoncd/pipeline v0.14.1-0.20200723005400-7453c403e28b
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.29.0
 	gopkg.in/yaml.v2 v2.3.0
